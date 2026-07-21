@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signboard — Instant Ads, Landing Page &amp; WhatsApp Bot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0E1B19;
+  --ink-2:#132523;
+  --panel:#16302C;
+  --line:#2C4B45;
+  --cream:#F4EFE4;
+  --cream-dim:#C9C2B2;
+  --coral:#FF6B4A;
+  --coral-dim:#C64F35;
+  --yellow:#FFC145;
+  --sage:#8FB3A6;
+
+  --display:'Fraunces', serif;
+  --body:'Inter', sans-serif;
+  --mono:'IBM Plex Mono', monospace;
+
+  --radius: 14px;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--cream);
+  font-family:var(--body);
+  line-height:1.5;
+  position:relative;
+}
+
+.grain{
+  position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+a{color:inherit;}
+
+/* ---------- Topbar ---------- */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:22px clamp(20px,5vw,64px);
+  border-bottom:1px solid var(--line);
+  position:relative; z-index:1;
+}
+.topbar-mark{display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:600; font-size:1.25rem; letter-spacing:.01em;}
+.mark-bulb{width:12px; height:12px; border-radius:50%; background:var(--yellow); box-shadow:0 0 14px 3px rgba(255,193,69,.65); display:inline-block;}
+.topbar-tag{margin:0; font-family:var(--mono); font-size:.78rem; color:var(--sage); letter-spacing:.02em;}
+
+/* ---------- Hero ---------- */
+main{position:relative; z-index:1;}
+.hero{
+  display:grid; grid-template-columns:1.05fr .95fr; gap:56px;
+  padding:clamp(36px,6vw,80px) clamp(20px,5vw,64px) 40px;
+  align-items:start;
+}
+.eyebrow{
+  font-family:var(--mono); text-transform:uppercase; letter-spacing:.14em; font-size:.72rem;
+  color:var(--coral); margin:0 0 18px;
+}
+.hero-copy h1{
+  font-family:var(--display); font-weight:600; font-size:clamp(2.1rem,4vw,3.1rem);
+  line-height:1.12; margin:0 0 20px; letter-spacing:-.01em;
+}
+.hero-sub{color:var(--cream-dim); font-size:1.02rem; max-width:46ch; margin:0;}
+.hero-sub strong{color:var(--yellow);}
+
+/* ---------- Form ---------- */
+.sign-form{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:28px; display:grid; grid-template-columns:1fr 1fr; gap:18px 16px;
+  box-shadow:0 30px 60px -30px rgba(0,0,0,.55);
+}
+.field{display:flex; flex-direction:column; gap:8px;}
+.field-wide{grid-column:1 / -1;}
+label{font-family:var(--mono); font-size:.72rem; letter-spacing:.05em; text-transform:uppercase; color:var(--sage);}
+input, textarea{
+  background:var(--ink-2); border:1px solid var(--line); color:var(--cream);
+  padding:12px 14px; border-radius:9px; font-family:var(--body); font-size:.95rem;
+  resize:vertical; outline:none; transition:border-color .15s ease, box-shadow .15s ease;
+}
+input::placeholder, textarea::placeholder{color:#6E8781;}
+input:focus, textarea:focus{border-color:var(--coral); box-shadow:0 0 0 3px rgba(255,107,74,.18);}
+
+.light-btn{
+  grid-column:1 / -1; margin-top:6px;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  background:var(--coral); color:var(--ink); border:none; border-radius:9px;
+  font-family:var(--display); font-weight:600; font-size:1.05rem;
+  padding:14px 20px; cursor:pointer; transition:transform .12s ease, background .15s ease;
+}
+.light-btn:hover{background:var(--yellow); transform:translateY(-1px);}
+.light-btn:active{transform:translateY(0);}
+.light-btn-bulb{width:9px; height:9px; border-radius:50%; background:var(--ink); box-shadow:0 0 0 3px rgba(14,27,25,.15);}
+
+/* ---------- Results shell ---------- */
+.results{padding:10px clamp(20px,5vw,64px) 80px;}
+.results.hidden{display:none;}
+
+.preview-sign{
+  margin:30px auto 34px; max-width:720px; text-align:center;
+  padding:38px 24px; border-radius:var(--radius);
+  background:radial-gradient(ellipse at center, #1c3733 0%, var(--ink-2) 78%);
+  border:1px solid var(--line);
+}
+.preview-sign span{
+  font-family:var(--display); font-weight:700; font-size:clamp(1.8rem,4vw,2.9rem);
+  color:var(--yellow);
+  text-shadow:0 0 8px rgba(255,193,69,.55), 0 0 26px rgba(255,193,69,.35);
+  letter-spacing:.01em;
+}
+
+.tabs{display:flex; gap:8px; border-bottom:1px solid var(--line); margin-bottom:28px; flex-wrap:wrap;}
+.tab{
+  background:none; border:none; color:var(--cream-dim); font-family:var(--mono); font-size:.85rem;
+  letter-spacing:.03em; padding:12px 6px; margin-right:18px; cursor:pointer; position:relative;
+}
+.tab.active{color:var(--cream);}
+.tab.active::after{content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--coral); border-radius:2px;}
+
+.panel{display:none;}
+.panel.active{display:block;}
+.panel-note{color:var(--cream-dim); font-size:.92rem; margin:0 0 20px; max-width:70ch;}
+.panel-toolbar{display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap;}
+
+.ghost-btn{
+  background:transparent; border:1px solid var(--sage); color:var(--sage);
+  font-family:var(--mono); font-size:.78rem; padding:9px 14px; border-radius:8px;
+  cursor:pointer; white-space:nowrap; transition:all .15s ease;
+}
+.ghost-btn:hover{border-color:var(--coral); color:var(--coral);}
+
+/* ---------- Ad cards ---------- */
+.ad-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:18px;}
+.ad-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:20px; display:flex; flex-direction:column; gap:12px; position:relative;
+}
+.ad-plat{
+  font-family:var(--mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--coral);
+}
+.ad-headline{font-family:var(--display); font-weight:600; font-size:1.15rem; margin:0; line-height:1.28;}
+.ad-body{color:var(--cream-dim); font-size:.9rem; margin:0; white-space:pre-line;}
+.ad-cta{
+  align-self:flex-start; margin-top:auto; font-family:var(--mono); font-size:.75rem;
+  background:var(--yellow); color:var(--ink); padding:7px 12px; border-radius:6px; font-weight:600;
+}
+.copy-btn{
+  position:absolute; top:16px; right:16px; background:none; border:1px solid var(--line);
+  color:var(--sage); font-family:var(--mono); font-size:.68rem; padding:5px 9px; border-radius:6px; cursor:pointer;
+}
+.copy-btn:hover{border-color:var(--coral); color:var(--coral);}
+
+/* ---------- Landing preview ---------- */
+.browser-frame{
+  margin-top:20px; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+  background:var(--panel);
+}
+.browser-dots{display:flex; gap:6px; padding:12px 14px; border-bottom:1px solid var(--line);}
+.browser-dots span{width:9px; height:9px; border-radius:50%; background:var(--line); display:inline-block;}
+#landingFrame{width:100%; height:640px; border:none; background:#fff;}
+
+/* ---------- WhatsApp mock ---------- */
+.wa-layout{display:grid; grid-template-columns:320px 1fr; gap:28px; margin-top:20px; align-items:start;}
+.phone{
+  background:#0B141A; border:8px solid #111; border-radius:34px; overflow:hidden;
+  box-shadow:0 30px 60px -25px rgba(0,0,0,.6); position:relative;
+}
+.phone-notch{height:18px; background:#111;}
+.phone-header{
+  display:flex; align-items:center; gap:10px; background:#1F2C34; padding:12px 14px;
+}
+.phone-avatar{
+  width:36px; height:36px; border-radius:50%; background:var(--coral); color:var(--ink);
+  display:flex; align-items:center; justify-content:center; font-family:var(--display); font-weight:700;
+}
+.phone-name{color:#E9EDEF; font-size:.92rem; font-weight:600;}
+.phone-status{color:#8696A0; font-size:.74rem;}
+.phone-chat{
+  height:460px; background:#0B141A; padding:14px; display:flex; flex-direction:column; gap:8px; overflow-y:auto;
+  background-image:linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px);
+  background-size:100% 40px;
+}
+.bubble{
+  max-width:82%; padding:9px 12px; border-radius:9px; font-size:.86rem; line-height:1.4;
+  animation:pop .25s ease both;
+}
+.bubble.bot{background:#1F2C34; color:#E9EDEF; align-self:flex-start; border-top-left-radius:2px;}
+.bubble.user{background:#005C4B; color:#E9EDEF; align-self:flex-end; border-top-right-radius:2px;}
+@keyframes pop{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.wa-script h3{font-family:var(--display); font-size:1.1rem; margin:0 0 14px;}
+.menu-script{margin:0 0 18px; padding-left:20px; color:var(--cream-dim); font-size:.9rem; display:flex; flex-direction:column; gap:10px;}
+.menu-script li{padding-left:4px;}
+.menu-script b{color:var(--cream); font-family:var(--mono); font-size:.85rem;}
+
+/* ---------- Footer ---------- */
+.site-footer{
+  border-top:1px solid var(--line); padding:22px clamp(20px,5vw,64px); text-align:center;
+  color:#6E8781; font-family:var(--mono); font-size:.72rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px){
+  .hero{grid-template-columns:1fr;}
+  .sign-form{grid-template-columns:1fr;}
+  .field-wide{grid-column:auto;}
+  .wa-layout{grid-template-columns:1fr;}
+  .phone{max-width:340px; margin:0 auto;}
+}
+
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<header class="topbar">
+  <div class="topbar-mark">
+    <span class="mark-bulb"></span>
+    <span class="mark-text">Signboard</span>
+  </div>
+  <p class="topbar-tag">Light up your business in three parts</p>
+</header>
+
+<main>
+  <!-- HERO / FORM -->
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Fill the sign, flip the switch</p>
+      <h1>Turn one form into ads, a landing page,<br> and a WhatsApp autoreply.</h1>
+      <p class="hero-sub">No account, no API key. Type your details, hit <strong>Light it up</strong>, and Signboard writes the copy for you — in your city's voice.</p>
+    </div>
+
+    <form id="genForm" class="sign-form" autocomplete="off">
+      <div class="field">
+        <label for="location">Where's the business?</label>
+        <input type="text" id="location" placeholder="e.g. Karachi, Pakistan" required>
+      </div>
+
+      <div class="field">
+        <label for="bizType">What kind of business is it?</label>
+        <input type="text" id="bizType" list="bizList" placeholder="Start typing or pick one…" required>
+        <datalist id="bizList"></datalist>
+      </div>
+
+      <div class="field">
+        <label for="brand">Brand name</label>
+        <input type="text" id="brand" placeholder="e.g. Olive &amp; Oak" required>
+      </div>
+
+      <div class="field field-wide">
+        <label for="info">Tell us about the business</label>
+        <textarea id="info" rows="3" placeholder="What do you sell, what makes you different, hours, offers, anything worth knowing…" required></textarea>
+      </div>
+
+      <button type="submit" class="light-btn">
+        <span class="light-btn-bulb"></span>
+        Light it up
+      </button>
+    </form>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="results hidden">
+
+    <div class="preview-sign" id="signPreview">
+      <span id="signBrandText">Your Brand</span>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="ads">Ads</button>
+      <button class="tab" data-tab="landing">Landing Page</button>
+      <button class="tab" data-tab="whatsapp">WhatsApp Bot</button>
+    </nav>
+
+    <!-- ADS PANEL -->
+    <div class="panel active" id="panel-ads">
+      <p class="panel-note">Six ready-to-post variations, tuned per platform. Copy any card straight into your ad manager.</p>
+      <div class="ad-grid" id="adGrid"></div>
+    </div>
+
+    <!-- LANDING PAGE PANEL -->
+    <div class="panel" id="panel-landing">
+      <div class="panel-toolbar">
+        <p class="panel-note">A one-page site built from your answers.</p>
+        <button class="ghost-btn" id="downloadLanding">Download landing-page.html</button>
+      </div>
+      <div class="browser-frame">
+        <div class="browser-dots"><span></span><span></span><span></span></div>
+        <iframe id="landingFrame" title="Landing page preview"></iframe>
+      </div>
+    </div>
+
+    <!-- WHATSAPP PANEL -->
+    <div class="panel" id="panel-whatsapp">
+      <div class="panel-toolbar">
+        <p class="panel-note">A greeting message, quick replies and a menu script — paste into WhatsApp Business App's Automated Messages, or into a bot builder like Twilio/WATI.</p>
+        <button class="ghost-btn" id="downloadBot">Download whatsapp-bot.json</button>
+      </div>
+      <div class="wa-layout">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-header">
+            <div class="phone-avatar" id="waAvatar">B</div>
+            <div>
+              <div class="phone-name" id="waName">Brand</div>
+              <div class="phone-status">online</div>
+            </div>
+          </div>
+          <div class="phone-chat" id="waChat"></div>
+        </div>
+        <div class="wa-script">
+          <h3>Menu script</h3>
+          <ol id="waMenuScript" class="menu-script"></ol>
+          <button class="ghost-btn" id="copyScript">Copy full script</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p>Built with Signboard — everything here is generated in your browser, nothing is sent anywhere.</p>
+</footer>
+
+<script>
+/* ---------------------------------------------------------
+   Signboard — client-side ad / landing-page / WhatsApp bot
+   generator. No backend, no API key: everything below is
+   template + keyword driven so it works for literally any
+   business typed into the form.
+--------------------------------------------------------- */
+
+const BUSINESS_TYPES = [
+  "Restaurant","Cafe & Coffee Shop","Cloud Kitchen","Bakery","Catering",
+  "Bar & Nightclub","Grocery Store","Butcher Shop","Fashion Boutique",
+  "Tailoring & Alterations","Shoe Store","Jewelry Store","Cosmetics Brand",
+  "Skincare Brand","Hair Salon","Barbershop","Nail Studio","Spa & Wellness",
+  "Gym & Fitness Studio","Yoga Studio","Dance Studio","Martial Arts School",
+  "Medical Clinic","Dental Clinic","Pharmacy","Physiotherapy Clinic",
+  "Veterinary Clinic","Pet Grooming","Pet Store","Daycare & Preschool",
+  "Tutoring Service","Language Academy","Online Course Business",
+  "Music School","Art School","Software Company","App Development Studio",
+  "Web Development Agency","Digital Marketing Agency","Graphic Design Studio",
+  "Photography Studio","Videography Studio","Event Planning Company",
+  "Wedding Planning Business","Real Estate Agency","Construction Company",
+  "Interior Design Studio","Architecture Firm","Landscaping Service",
+  "Cleaning Service","Laundry & Dry Cleaning","Handyman Service",
+  "Plumbing Service","Electrician Service","Moving Company",
+  "Auto Repair Shop","Car Wash","Car Dealership","Car Rental",
+  "Bike Rental","Travel Agency","Tour Operator","Hotel & Guesthouse",
+  "Airbnb / Short-let Rentals","Furniture Store","Home Decor Store",
+  "Electronics Store","Mobile Phone Shop","Repair Shop (Electronics)",
+  "Bookstore","Stationery Store","Toy Store","Sports Store",
+  "Hardware Store","Farming & Agriculture Business","Dairy Business",
+  "Poultry Farm","Textile Business","Import / Export Business",
+  "Wholesale Distribution","Logistics & Delivery Service",
+  "Warehousing & Storage","Printing Press","Advertising Agency",
+  "Consulting Firm","Accounting & Bookkeeping Firm","Law Firm",
+  "Insurance Agency","Financial Advisory","Recruitment Agency",
+  "Coworking Space","Security Services","E-commerce Store","SaaS Startup",
+  "Mobile App Startup","Cryptocurrency / Blockchain Business",
+  "Non-Profit Organization","Religious Organization",
+  "Manufacturing Business","Other / Something else"
+];
+
+const dl = document.getElementById("bizList");
+BUSINESS_TYPES.forEach(b => {
+  const opt = document.createElement("option");
+  opt.value = b;
+  dl.appendChild(opt);
+});
+
+/* ---------- keyword-based flavor picker ---------- */
+function detectFlavor(bizType, info) {
+  const t = (bizType + " " + info).toLowerCase();
+  const has = (...words) => words.some(w => t.includes(w));
+
+  if (has("restaurant","cafe","food","bakery","kitchen","catering","bar","grocery","butcher"))
+    return { emoji: "🍽️", noun: "taste", verb: "savor", color: "appetite" };
+  if (has("salon","barber","spa","skincare","cosmetic","nail","beauty","hair"))
+    return { emoji: "✨", noun: "glow", verb: "refresh", color: "confidence" };
+  if (has("gym","fitness","yoga","martial","dance"))
+    return { emoji: "💪", noun: "energy", verb: "move", color: "momentum" };
+  if (has("clinic","dental","pharmacy","physio","medical","veterinary","health"))
+    return { emoji: "🩺", noun: "care", verb: "feel better", color: "trust" };
+  if (has("school","tutor","academy","course","education","music school","art school")) 
+    return { emoji: "🎓", noun: "growth", verb: "learn", color: "progress" };
+  if (has("software","app","web","tech","saas","startup","crypto","blockchain","it"))
+    return { emoji: "⚡", noun: "workflow", verb: "build", color: "clarity" };
+  if (has("real estate","construction","interior","architecture","landscap"))
+    return { emoji: "🏠", noun: "space", verb: "settle in", color: "belonging" };
+  if (has("auto","car","bike","garage","mechanic"))
+    return { emoji: "🚗", noun: "ride", verb: "roll out", color: "reliability" };
+  if (has("travel","tour","hotel","guesthouse","airbnb"))
+    return { emoji: "✈️", noun: "getaway", verb: "explore", color: "wonder" };
+  if (has("fashion","boutique","tailor","shoe","jewelry","apparel","clothing"))
+    return { emoji: "👗", noun: "style", verb: "step out", color: "identity" };
+  return { emoji: "🌟", noun: "experience", verb: "discover", color: "trust" };
+}
+
+function firstInfoLine(info) {
+  const parts = info.split(/[.!\n]/).map(s => s.trim()).filter(Boolean);
+  return parts[0] || info.trim();
+}
+function infoPoints(info, max = 4) {
+  const parts = info.split(/[,.\n]/).map(s => s.trim()).filter(s => s.length > 2);
+  return parts.slice(0, max);
+}
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------------------------------------------------------
+   AD GENERATION — 6 platform-flavored variations
+--------------------------------------------------------- */
+function generateAds({ location, bizType, brand, info }) {
+  const f = detectFlavor(bizType, info);
+  const hook = firstInfoLine(info);
+  const points = infoPoints(info, 3);
+  const secondaryBenefit = points[1] || hook;
+
+  return [
+    {
+      platform: "Facebook / Instagram Feed",
+      headline: `Still settling for an average ${bizType.toLowerCase()} in ${location}? ${f.emoji}`,
+      body: `${hook}. ${brand} was built for people who don't want to settle — and ${location} has started to notice.`,
+      cta: "Learn More"
+    },
+    {
+      platform: "Instagram / Facebook Story",
+      headline: `Wait — you haven't tried ${brand} yet? ${f.emoji}`,
+      body: `${brand} is the ${bizType.toLowerCase()} people in ${location} keep messaging us about.\nTap up before you miss why.`,
+      cta: "Swipe Up"
+    },
+    {
+      platform: "Google Search Ad",
+      headline: `${brand} — ${bizType} in ${location}`,
+      body: `${hook}. Rated highly by locals. See availability and book in under a minute.`,
+      cta: "Visit Website"
+    },
+    {
+      platform: "Grand Opening / Offer",
+      headline: `${brand} just opened in ${location} — your first ${f.noun} is on us 🎉`,
+      body: `${hook}. The offer disappears once the first wave of customers claims it — don't be the one who waited.`,
+      cta: "Claim Offer"
+    },
+    {
+      platform: "WhatsApp Status / Broadcast",
+      headline: `${location}, this one's actually for you ${f.emoji}`,
+      body: `${hook}. Message ${brand} on WhatsApp right now — real replies in minutes, not days.`,
+      cta: "Chat on WhatsApp"
+    },
+    {
+      platform: "Print Flyer / Poster",
+      headline: `${brand.toUpperCase()}`,
+      body: `${bizType} · ${location}\n${hook}.\n${secondaryBenefit}.\nCome ${f.verb} the ${f.noun} everyone's talking about.`,
+      cta: "Find Us"
+    }
+  ];
+}
+
+function renderAds(ads) {
+  const grid = document.getElementById("adGrid");
+  grid.innerHTML = "";
+  ads.forEach((ad, i) => {
+    const card = document.createElement("div");
+    card.className = "ad-card";
+    card.innerHTML = `
+      <button class="copy-btn" data-i="${i}">Copy</button>
+      <span class="ad-plat">${esc(ad.platform)}</span>
+      <p class="ad-headline">${esc(ad.headline)}</p>
+      <p class="ad-body">${esc(ad.body)}</p>
+      <span class="ad-cta">${esc(ad.cta)}</span>
+    `;
+    grid.appendChild(card);
+  });
+  grid.querySelectorAll(".copy-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const ad = ads[+btn.dataset.i];
+      navigator.clipboard.writeText(`${ad.headline}\n\n${ad.body}\n\n[${ad.cta}]`);
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = "Copy"), 1200);
+    });
+  });
+}
+
+/* ---------------------------------------------------------
+   LANDING PAGE GENERATION
+--------------------------------------------------------- */
+function buildFAQs({ location, brand }) {
+  return [
+    { q: `Where is ${brand} located?`, a: `${brand} is based in ${location} — message us on WhatsApp and we'll share directions or delivery options.` },
+    { q: `How fast do you reply to messages?`, a: `Most messages get a reply within minutes during business hours.` },
+    { q: `Can I book or order in advance?`, a: `Yes — send us your preferred time or order and we'll confirm availability.` }
+  ];
+}
+
+function generateLandingHTML({ location, bizType, brand, info }) {
+  const f = detectFlavor(bizType, info);
+  const points = infoPoints(info, 4);
+  const featureList = points.length ? points : ["Quality you can trust", "Friendly, local service", "Fast turnaround"];
+  const featuresHTML = featureList
+    .map(p => `<li>${esc(p.charAt(0).toUpperCase() + p.slice(1))}</li>`).join("");
+
+  // Automated web metadata — read by search engines, WhatsApp/Facebook link
+  // previews, and other crawlers when this page is shared or indexed.
+  const metaDescription = `${brand} — ${bizType} in ${location}. ${firstInfoLine(info)}.`.slice(0, 160);
+  const faqs = buildFAQs({ location, brand });
+  const faqHTML = faqs.map(q => `<div class="faq-item"><h3>${esc(q.q)}</h3><p>${esc(q.a)}</p></div>`).join("");
+  const jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": brand,
+    "description": firstInfoLine(info),
+    "address": { "@type": "PostalAddress", "addressLocality": location },
+    "areaServed": location,
+    "knowsAbout": bizType
+  }).replace(/</g, "\\u003c");
+
+  return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${esc(brand)} — ${esc(bizType)} in ${esc(location)}</title>
+
+<!-- Automated SEO / web metadata, generated from your form answers -->
+<meta name="description" content="${esc(metaDescription)}">
+<meta name="keywords" content="${esc(bizType)}, ${esc(location)}, ${esc(brand)}">
+<meta property="og:title" content="${esc(brand)} — ${esc(bizType)} in ${esc(location)}">
+<meta property="og:description" content="${esc(metaDescription)}">
+<meta property="og:type" content="business.business">
+<meta property="og:locale" content="en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="${esc(brand)}">
+<meta name="twitter:description" content="${esc(metaDescription)}">
+<script type="application/ld+json">${jsonLd}<\/script>
+
+<style>
+  :root{--ink:#14201d;--cream:#faf7f0;--coral:#ff6b4a;--yellow:#ffc145;--line:#e7e1d3;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;}
+  header{padding:80px 24px;text-align:center;background:linear-gradient(180deg,#1c2a26,#14201d);color:#faf7f0;}
+  header .eyebrow{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:14px;}
+  header h1{font-size:2.6rem;margin-bottom:16px;}
+  header p{font-size:1.1rem;color:#cfc9ba;max-width:560px;margin:0 auto 28px;}
+  .btn{display:inline-block;background:var(--coral);color:#14201d;font-weight:700;padding:14px 28px;border-radius:8px;text-decoration:none;}
+  section{padding:60px 24px;max-width:860px;margin:0 auto;}
+  h2{font-size:1.8rem;margin-bottom:18px;}
+  .about p{font-size:1.05rem;color:#3c453f;}
+  ul.features{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:20px;}
+  ul.features li{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px;font-weight:600;}
+  .stats-bar{display:flex;flex-wrap:wrap;gap:0;background:#1c2a26;padding:0;}
+  .stats-bar .stat{flex:1 1 200px;text-align:center;padding:26px 16px;color:#faf7f0;border-right:1px solid rgba(255,255,255,.08);}
+  .stats-bar .stat:last-child{border-right:none;}
+  .stats-bar .stat b{display:block;font-size:1.3rem;color:var(--yellow);margin-bottom:4px;}
+  .stats-bar .stat span{font-size:.82rem;color:#cfc9ba;}
+  .faq-item{border-bottom:1px solid var(--line);padding:18px 0;}
+  .faq-item h3{font-size:1.05rem;margin-bottom:6px;}
+  .faq-item p{color:#3c453f;font-size:.96rem;}
+  .testimonial-placeholder{background:#fff;border:1px dashed var(--line);border-radius:10px;padding:24px;text-align:center;color:#8a8578;font-style:italic;}
+  .cta-band{background:var(--yellow);text-align:center;padding:60px 24px;}
+  .cta-band h2{margin-bottom:12px;}
+  footer{text-align:center;padding:30px;color:#8a8578;font-size:.85rem;}
+</style></head>
+<body>
+  <header>
+    <div class="eyebrow">${esc(bizType)} · ${esc(location)}</div>
+    <h1>${f.emoji} ${esc(brand)}</h1>
+    <p>${esc(firstInfoLine(info))}.</p>
+    <a class="btn" href="#contact">Get in touch</a>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat"><b>📍 ${esc(location)}</b><span>Serving customers locally</span></div>
+    <div class="stat"><b>⚡ Minutes</b><span>Typical WhatsApp reply time</span></div>
+    <div class="stat"><b>${featureList.length}</b><span>Things that set ${esc(brand)} apart</span></div>
+  </div>
+
+  <section class="about">
+    <h2>About ${esc(brand)}</h2>
+    <p>${esc(info)}</p>
+  </section>
+
+  <section>
+    <h2>Why people in ${esc(location)} choose us</h2>
+    <ul class="features">${featuresHTML}</ul>
+  </section>
+
+  <section class="faq">
+    <h2>Frequently asked questions</h2>
+    ${faqHTML}
+  </section>
+
+  <section>
+    <h2>What customers say</h2>
+    <div class="testimonial-placeholder">"Add a real customer quote here — a short testimonial builds trust faster than anything else on the page."</div>
+  </section>
+
+  <div class="cta-band">
+    <h2>Ready to ${f.verb} the ${f.noun}?</h2>
+    <p>Message ${esc(brand)} on WhatsApp — we usually reply within minutes.</p>
+  </div>
+  <footer id="contact">${esc(brand)} · ${esc(location)} · Built with Signboard</footer>
+</body></html>`;
+}
+
+/* ---------------------------------------------------------
+   WHATSAPP BOT GENERATION
+--------------------------------------------------------- */
+function generateWhatsAppBot({ location, bizType, brand, info }) {
+  const f = detectFlavor(bizType, info);
+  const hook = firstInfoLine(info);
+
+  const greeting = `Hi! 👋 Welcome to ${brand}, your ${bizType.toLowerCase()} in ${location}. ${hook}. How can we help today?`;
+  const away = `Thanks for messaging ${brand}! We're away right now but read every message — we'll reply as soon as we're back. 🙏`;
+
+  const menu = [
+    { key: "1", label: "Our Products / Services", reply: `Here's what ${brand} offers: ${hook}. Want details on pricing or availability?` },
+    { key: "2", label: "Pricing", reply: `Prices vary by what you need — tell us a bit more and we'll send an accurate quote 💬` },
+    { key: "3", label: "Location & Hours", reply: `We're based in ${location}. Send "hours" if you'd like our exact opening times.` },
+    { key: "4", label: "Talk to a human", reply: `Connecting you with our team now — someone from ${brand} will reply shortly!` }
+  ];
+
+  const quickReplies = [
+    { shortcut: "/hours", text: `${brand}'s hours in ${location}: Mon–Sat, 10am–8pm.` },
+    { shortcut: "/location", text: `Find us in ${location}. Share your area and we'll send directions!` },
+    { shortcut: "/offer", text: `New here? Mention this message for a first-time welcome offer at ${brand} 🎁` }
+  ];
+
+  return { greeting, away, menu, quickReplies, brand, bizType, location, emoji: f.emoji };
+}
+
+function renderWhatsApp(bot) {
+  document.getElementById("waAvatar").textContent = bot.brand.charAt(0).toUpperCase();
+  document.getElementById("waName").textContent = bot.brand;
+
+  const chat = document.getElementById("waChat");
+  chat.innerHTML = "";
+  const seq = [
+    { who: "bot", text: bot.greeting },
+    { who: "user", text: "1" },
+    { who: "bot", text: bot.menu[0].reply }
+  ];
+  seq.forEach((m, i) => {
+    setTimeout(() => {
+      const b = document.createElement("div");
+      b.className = `bubble ${m.who}`;
+      b.textContent = m.text;
+      chat.appendChild(b);
+      chat.scrollTop = chat.scrollHeight;
+    }, i * 450);
+  });
+
+  const list = document.getElementById("waMenuScript");
+  list.innerHTML = "";
+  const greetItem = document.createElement("li");
+  greetItem.innerHTML = `<b>Greeting message</b><br>${esc(bot.greeting)}`;
+  list.appendChild(greetItem);
+  bot.menu.forEach(m => {
+    const li = document.createElement("li");
+    li.innerHTML = `<b>${esc(m.key)}. ${esc(m.label)}</b><br>${esc(m.reply)}`;
+    list.appendChild(li);
+  });
+  const awayItem = document.createElement("li");
+  awayItem.innerHTML = `<b>Away message</b><br>${esc(bot.away)}`;
+  list.appendChild(awayItem);
+}
+
+/* ---------------------------------------------------------
+   WIRING
+--------------------------------------------------------- */
+let lastLandingHTML = "";
+let lastBot = null;
+
+document.getElementById("genForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const data = {
+    location: document.getElementById("location").value.trim() || "your city",
+    bizType: document.getElementById("bizType").value.trim() || "business",
+    brand: document.getElementById("brand").value.trim() || "Your Brand",
+    info: document.getElementById("info").value.trim() || "Quality service you can rely on."
+  };
+
+  document.getElementById("signBrandText").textContent = data.brand;
+
+  renderAds(generateAds(data));
+
+  lastLandingHTML = generateLandingHTML(data);
+  document.getElementById("landingFrame").srcdoc = lastLandingHTML;
+
+  lastBot = generateWhatsAppBot(data);
+  renderWhatsApp(lastBot);
+
+  document.getElementById("results").classList.remove("hidden");
+  document.getElementById("results").scrollIntoView({ behavior: "smooth" });
+});
+
+/* tabs */
+document.getElementById("tabs").addEventListener("click", e => {
+  const btn = e.target.closest(".tab");
+  if (!btn) return;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById(`panel-${btn.dataset.tab}`).classList.add("active");
+});
+
+/* downloads */
+document.getElementById("downloadLanding").addEventListener("click", () => {
+  const blob = new Blob([lastLandingHTML], { type: "text/html" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "landing-page.html";
+  a.click();
+});
+
+document.getElementById("downloadBot").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(lastBot, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "whatsapp-bot.json";
+  a.click();
+});
+
+document.getElementById("copyScript").addEventListener("click", () => {
+  if (!lastBot) return;
+  let text = `GREETING MESSAGE\n${lastBot.greeting}\n\nMENU\n`;
+  lastBot.menu.forEach(m => (text += `${m.key}. ${m.label} → ${m.reply}\n`));
+  text += `\nAWAY MESSAGE\n${lastBot.away}\n\nQUICK REPLIES\n`;
+  lastBot.quickReplies.forEach(q => (text += `${q.shortcut} → ${q.text}\n`));
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById("copyScript");
+  btn.textContent = "Copied!";
+  setTimeout(() => (btn.textContent = "Copy full script"), 1200);
+});
+
+</script>
+</body>
+</html>
